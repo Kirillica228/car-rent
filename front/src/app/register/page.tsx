@@ -42,8 +42,6 @@ export default function Register() {
   }
 
   return (
-    <div className="flex flex-col items-center ">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
         <form onSubmit={handleSubmit} className="flex flex-col gap-[16px]">
           <label htmlFor="email">Эл. почта</label>
           <input
@@ -82,7 +80,5 @@ export default function Register() {
             {loading ? "Регистрируем..." : "Register"}
           </button>
         </form>
-      </main>
-    </div>
   );
 }

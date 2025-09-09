@@ -45,38 +45,34 @@ export default function Login() {
   }
 
   return (
-    <div className="flex flex-col items-center ">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-[16px]">
-          <label htmlFor="email">Эл. почта</label>
-          <input
-            type="email"
-            name="email"
-            className="border p-1 rounded-md"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-[16px]">
+        <label htmlFor="email">Эл. почта</label>
+        <input
+        type="email"
+        name="email"
+        className="border p-1 rounded-md"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        />
 
-          <label htmlFor="password">Пароль</label>
-          <input
-            type="password"
-            name="password"
-            className="border p-1 rounded-md"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+        <label htmlFor="password">Пароль</label>
+        <input
+        type="password"
+        name="password"
+        className="border p-1 rounded-md"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        />
 
-          {error && <p className="text-red-500">{error}</p>}
+        {error && <p className="text-red-500">{error}</p>}
 
-          <button
-            type="submit"
-            className="bg-blue-500 text-white p-2 rounded-md mt-2"
-            disabled={loading}
-          >
-            {loading ? "Входим..." : "Login"}
-          </button>
-        </form>
-      </main>
-    </div>
+        <button
+        type="submit"
+        className="bg-blue-500 text-white p-2 rounded-md mt-2"
+        disabled={loading}
+        >
+        {loading ? "Входим..." : "Login"}
+        </button>
+    </form>
   );
 }
