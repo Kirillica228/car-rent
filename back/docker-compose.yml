@@ -1,0 +1,81 @@
+services:
+  gateway:
+    build: ./gateway
+    container_name: gateway
+    ports:
+      - "8080:8080"
+    environment:
+      JWT_SECRET: supersecretkey
+    depends_on:
+      - auth
+      - catalog
+    networks:
+      - backend
+
+  db:
+    image: postgres:16
+    container_name: db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydb
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
+    networks:
+      - backend
+
+  auth:
+    build: ./auth
+    container_name: auth
+    expose:
+      - "8080"
+    environment:
+      JWT_SECRET: supersecretkey
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: auth_db
+    depends_on:
+      - db
+    networks:
+      - backend
+
+  catalog:
+    build: ./catalog
+    container_name: catalog
+    expose:
+      - "8080"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: catalog_db
+    networks:
+      - backend
+
+  pgadmin:                       
+      image: dpage/pgadmin4
+      container_name: pgadmin
+      environment:
+        PGADMIN_DEFAULT_EMAIL: admin@admin.com
+        PGADMIN_DEFAULT_PASSWORD: admin
+      ports:
+        - "5050:80"
+      depends_on:
+        - db
+      networks:
+        - backend
+    
+volumes:
+  db_data:
+
+networks:
+  backend:
+    driver: bridge
