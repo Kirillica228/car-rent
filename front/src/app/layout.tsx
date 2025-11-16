@@ -1,6 +1,9 @@
+"use client";
+
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Link from "next/link";
+import { QueryProvider } from "./providers";
+import { LayoutContent } from "@/components/layoutComponent";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,37 +15,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="ru">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-r from-gray-100 via-gray-50 to-gray-100`}
       >
+        <QueryProvider>
+          <LayoutContent>{children}</LayoutContent>          
+        </QueryProvider>
       </body>
-      <header className="flex items-center justify-around p-5">
-        <h1>Car Rent</h1>
-        <nav className="flex items-center justify-between w-[80%]">
-          <ul className="flex items-center justify-between w-full">
-            <li>
-              <Link href={"/"}>Home</Link>
-            </li>
-            <li>
-              <Link href={"/login"}>Login</Link>
-            </li>
-            <li>
-              <Link href={"/register"}>Register</Link>
-            </li>
-          </ul>
-        </nav>
-      </header>
-      <main className="flex flex-col items-center justify-center h-screen">
-        {children}
-      </main>
     </html>
   );
 }

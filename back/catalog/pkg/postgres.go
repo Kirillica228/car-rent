@@ -1,7 +1,8 @@
 package pkg
 
 import (
-	postgresmodel "catalog/internal/repository/postgres"
+	"catalog/internal/domain/entity"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -11,7 +12,11 @@ func ConnectDB(dsn string) *gorm.DB {
 	if err != nil {
 		return nil
 	}
-	err = db.AutoMigrate(&postgresmodel.CarModel{}, &postgresmodel.CarTypeModel{}, &postgresmodel.CarBrandModel{})
+	err = db.AutoMigrate(
+		&entity.Car{}, 
+		&entity.Type{}, 
+		&entity.Brand{}, 
+		&entity.Image{})
 	if err != nil {
 		panic("failed to migrate database: " + err.Error())
 	}

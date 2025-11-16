@@ -1,21 +1,21 @@
 package pkg
 
 import (
+	postgresmodel "rent/internal/repository"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"log"
-	"rent/internal/repository/postgres"
 )
 
 func ConnectDB(dsn string) *gorm.DB {
-	db, err := gorm.Open(postgres.Open("rent.db"), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal("failed to connect database")
+		return nil
 	}
-
-	// Миграция таблицы Rent
-	if err := db.AutoMigrate(&repository.RentModel{}); err != nil {
-		log.Fatal("failed to migrate database")
+	err = db.AutoMigrate(
+		&postgresmodel.Rent{},
+	)
+	if err != nil {
+		panic("failed to migrate database: " + err.Error())
 	}
 	return db
 }

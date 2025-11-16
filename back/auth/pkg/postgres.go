@@ -13,7 +13,7 @@ func ConnectDB(dsn string) *gorm.DB {
 	}
 
 	// Автоматические миграции
-	err = db.AutoMigrate(&postgresmodel.UserModel{})
+	err = db.AutoMigrate(&postgresmodel.User{}, &postgresmodel.Role{})
 	if err != nil {
 		panic("failed to migrate database: " + err.Error())
 	}

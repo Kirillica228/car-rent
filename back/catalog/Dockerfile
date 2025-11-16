@@ -7,7 +7,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o catalog ./cmd/api
+RUN go build -o catalog ./cmd
 
 FROM alpine
 

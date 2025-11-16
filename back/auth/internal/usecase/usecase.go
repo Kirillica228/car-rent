@@ -39,7 +39,7 @@ func (u *UseCase) Login(authUser *entity.AuthUser) (*entity.AuthToken,error) {
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password),[]byte(authUser.Password));err != nil {
 		return nil,entity.ErrInvalidCredentials
 	}
-	token,err := jwt.GenerateToken(user.ID,user.Role)
+	token,err := jwt.GenerateToken(user.ID,user.Role.Name)
 	if err!=nil{
 		return nil,entity.ErrTokenCreate
 	}

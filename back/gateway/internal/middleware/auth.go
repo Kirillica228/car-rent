@@ -3,25 +3,47 @@ package middleware
 import (
 	"log"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
+var jwtSecret = []byte("supersecretkey") // вынеси в конфиг
 
-func AuthMiddleware(requiredRole int) gin.HandlerFunc {
+// роли
+const (
+	RoleUser   = "user"
+	RoleAdmin  = "admin"
+	RoleWorker = "worker"
+)
+
+// AuthMiddleware принимает список разрешённых ролей
+func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing authorization header"})
+		var tokenStr string
+
+		// 1️⃣ — Пытаемся достать токен из cookie
+		if cookie, err := c.Cookie("access_token"); err == nil && cookie != "" {
+			tokenStr = cookie
+		}
+
+		// 2️⃣ — Если нет cookie, пробуем Authorization: Bearer
+		if tokenStr == "" {
+			authHeader := c.GetHeader("Authorization")
+			if strings.HasPrefix(authHeader, "Bearer ") {
+				tokenStr = strings.TrimPrefix(authHeader, "Bearer ")
+			}
+		}
+
+		// 3️⃣ — Если токена нет вообще
+		if tokenStr == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing token"})
 			c.Abort()
 			return
 		}
 
-		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+		// 4️⃣ — Парсим JWT токен
 		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, jwt.ErrSignatureInvalid
@@ -35,6 +57,7 @@ func AuthMiddleware(requiredRole int) gin.HandlerFunc {
 			return
 		}
 
+		// 5️⃣ — Достаём claims
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid claims"})
@@ -42,33 +65,33 @@ func AuthMiddleware(requiredRole int) gin.HandlerFunc {
 			return
 		}
 
-		// извлекаем роль
-		roleFloat, ok := claims["role"].(float64)
-		
-		if !ok {
-			c.JSON(http.StatusForbidden, gin.H{"error": "role not found in token"})
-			c.Abort()
-			return
-		}
-		role := int(roleFloat)
+		// 6️⃣ — Извлекаем user_id и role
+		userID, _ := claims["user_id"].(float64)
+		role, _ := claims["role"].(string)
 
-		if requiredRole != 0 && role != requiredRole {
-			log.Print(role)
-			c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
-			c.Abort()
-			return
+		// 7️⃣ — Проверяем доступ по роли
+		if len(allowedRoles) > 0 {
+			allowed := false
+			for _, r := range allowedRoles {
+				if r == role {
+					allowed = true
+					break
+				}
+			}
+
+			if !allowed {
+				log.Printf("access denied: role=%s", role)
+				c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
+				c.Abort()
+				return
+			}
 		}
 
-		// сохраняем user_id и role в контекст Gin
-		c.Set("user_id", claims["user_id"])
+		// 8️⃣ — Добавляем данные в контекст
+		c.Set("user_id", uint(userID))
 		c.Set("role", role)
+		c.Request.Header.Set("X-User-Role", role)
 
-		// прокачиваем роль через заголовок для downstream сервисов
-		if role == 1 {
-			c.Request.Header.Set("X-User-Role", "admin")
-		} else {
-			c.Request.Header.Set("X-User-Role", "user")
-		}
 		c.Next()
 	}
 }

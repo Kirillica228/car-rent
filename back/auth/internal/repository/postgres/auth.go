@@ -15,7 +15,7 @@ func NewPostgresAuthRepo(db *gorm.DB) entity.AuthRepository {
 }
 
 func (r *postgresAuthRepo) Create(authUser *entity.AuthUser) error {
-	dbModel := UserModel{
+	dbModel := User{
 		Email:    authUser.Email,
 		Password: authUser.Password,
 	}
@@ -24,14 +24,17 @@ func (r *postgresAuthRepo) Create(authUser *entity.AuthUser) error {
 }
 
 func (r *postgresAuthRepo) GetByEmail(email string) (*entity.AuthUser,error) {
-	var dbModel UserModel
-	if err := r.db.Where("email = ?", email).First(&dbModel).Error; err != nil {
+	var dbModel User
+	if err := r.db.Preload("Role").Where("email = ?", email).First(&dbModel).Error; err != nil {
 		return nil, err
 	}
 	return &entity.AuthUser{
 		ID: dbModel.ID,
 		Email:    dbModel.Email,
 		Password: dbModel.Password,
-		Role:     dbModel.Role,
+		Role:     entity.Role{
+			ID:   dbModel.Role.ID,
+			Name: dbModel.Role.Name,
+		},
 	}, nil
 }

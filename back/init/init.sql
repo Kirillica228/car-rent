@@ -1,3 +1,4 @@
 CREATE DATABASE auth_db;
 CREATE DATABASE catalog_db;
 CREATE DATABASE rent_db;
+CREATE DATABASE crm_db;

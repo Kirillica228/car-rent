@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -24,19 +25,30 @@ func ReverseProxy(target string) gin.HandlerFunc {
 			req.URL.Scheme = remote.Scheme
 			req.URL.Host = remote.Host
 
-			// убираем дублирование путей
 			proxyPath := c.Param("proxyPath")
 			if !strings.HasPrefix(proxyPath, "/") {
 				proxyPath = "/" + proxyPath
 			}
 
-			// правильно формируем финальный путь
-			req.URL.Path = path.Join(remote.Path, proxyPath) 
+			req.URL.Path = path.Join(remote.Path, proxyPath)
 
-			// пробрасываем заголовки
 			req.Host = remote.Host
+
+			if userID, exists := c.Get("user_id"); exists {
+				req.Header.Set("X-User-ID", toString(userID))
+			}
+			if role, exists := c.Get("role"); exists {
+				req.Header.Set("X-User-Role", toString(role))
+			}
 		}
 
 		proxy.ServeHTTP(c.Writer, c.Request)
 	}
+}
+
+func toString(v interface{}) string {
+	if v == nil {
+		return ""
+	}
+	return strings.TrimSpace(strings.ReplaceAll(fmt.Sprintf("%v", v), "\n", ""))
 }

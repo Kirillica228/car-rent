@@ -5,7 +5,12 @@ type AuthUser struct {
 	ID		uint
 	Email    string 
 	Password string 
-	Role     int
+	Role     Role
+}
+
+type Role struct {
+	ID   uint
+	Name string
 }
 
 type AuthToken struct{
